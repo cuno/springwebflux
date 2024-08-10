@@ -51,14 +51,14 @@ class MovieInfoRepositoryIntgTest {
 
     @Test
     void findAll() {
-        //given
+        // given
 
-        //when
+        // when
         var moviesInfoFlux = movieInfoRepository
                 .findAll()
                 .log();
 
-        //then
+        // then
         StepVerifier.create(moviesInfoFlux)
                 .expectNextCount(3)
                 .verifyComplete();
@@ -66,14 +66,14 @@ class MovieInfoRepositoryIntgTest {
 
     @Test
     void findById() {
-        //given
+        // given
 
-        //when
+        // when
         var moviesInfoMono = movieInfoRepository
                 .findById("abc")
                 .log();
 
-        //then
+        // then
         StepVerifier.create(moviesInfoMono)
                 .assertNext(movieInfo -> {
                     assertEquals("Dark Knight Rises", movieInfo.getName());
@@ -83,7 +83,7 @@ class MovieInfoRepositoryIntgTest {
 
     @Test
     void saveMovieInfo() {
-        //given
+        // given
         var title = "Batman Begins Again";
         var movie = new MovieInfo(
                 null,
@@ -93,12 +93,12 @@ class MovieInfoRepositoryIntgTest {
                 LocalDate.parse("2005-06-15")
         );
 
-        //when
+        // when
         var moviesInfoMono = movieInfoRepository
                 .save(movie)
                 .log();
 
-        //then
+        // then
         StepVerifier.create(moviesInfoMono)
                 .assertNext(movieInfo -> {
                     assertNotNull(movieInfo.getMovieInfoId());
@@ -110,16 +110,16 @@ class MovieInfoRepositoryIntgTest {
 
     @Test
     void updateMovieInfo() {
-        //given
+        // given
         var movieInfo = movieInfoRepository.findById("abc").block();
         movieInfo.setYear(2024);
 
-        //when
+        // when
         var moviesInfoMono = movieInfoRepository
                 .save(movieInfo)
                 .log();
 
-        //then
+        // then
         StepVerifier.create(moviesInfoMono)
                 .assertNext(m -> {
                     assertEquals(2024, m.getYear());
@@ -129,9 +129,9 @@ class MovieInfoRepositoryIntgTest {
 
     @Test
     void deleteMovieInfo() {
-        //given
+        // given
 
-        //when
+        // when
         movieInfoRepository
                 .deleteById("abc")
                 .block();
@@ -139,9 +139,41 @@ class MovieInfoRepositoryIntgTest {
                 .findAll()
                 .log();
 
-        //then
+        // then
         StepVerifier.create(moviesInfoFlux)
                 .expectNextCount(2)
+                .verifyComplete();
+    }
+
+    @Test
+    void findByYear() {
+        // given
+
+        // when
+        var year = 2005;
+        var moviesInfoFlux = movieInfoRepository
+                .findByYear(year)
+                .log();
+
+        // then
+        StepVerifier.create(moviesInfoFlux)
+                .expectNextCount(1)
+                .verifyComplete();
+    }
+
+    @Test
+    void findByName() {
+        // given
+
+        // when
+        var name = "Dark Knight Rises";
+        var moviesInfoMono = movieInfoRepository
+                .findByName(name)
+                .log();
+
+        // then
+        StepVerifier.create(moviesInfoMono)
+                .expectNextCount(1)
                 .verifyComplete();
     }
 

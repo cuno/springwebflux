@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -92,6 +93,27 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
+    void getAllMovieInfoByYear() {
+        // given
+        var uri = UriComponentsBuilder
+                .fromUriString(MOVIES_INFO_URL)
+                .queryParam("year", 2005)
+                .buildAndExpand()
+                .toUri();
+
+        // when
+        webTestClient
+                .get()
+                .uri(uri)
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .expectBodyList(MovieInfo.class)
+                .hasSize(1);
+
+    }
+
+    @Test
     void getMovieInfoById() {
         // given
         var movieInfoId = "abc";
@@ -104,13 +126,26 @@ class MoviesInfoControllerIntgTest {
                 .expectStatus()
                 .is2xxSuccessful()
                 .expectBody(MovieInfo.class)
-//                .jsonPath("$.name").isEqualTo()
+                //                .jsonPath("$.name").isEqualTo()
                 .consumeWith(movieInfoEntityExchangeResult -> {
                     var movieInfo = movieInfoEntityExchangeResult.getResponseBody();
                     assert movieInfo != null;
                     assert title.equals(movieInfo.getName());
                     assert 2012 == movieInfo.getYear();
                 });
+    }
+
+    @Test
+    void getMovieInfoById_notfound() {
+        // given
+        var movieInfoId = "¯\\_(ツ)_//¯";
+        // when
+        webTestClient
+                .get()
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
@@ -138,6 +173,23 @@ class MoviesInfoControllerIntgTest {
                     assertEquals(title, updatedMovieInfo.getName());
                 });
 
+    }
+
+    @Test
+    void updateMovieInfo_notfound() {
+        // given
+        var movieInfoId = "def";
+        var title = "Dark Knight Rises Again";
+        var movieInfo = new MovieInfo(null, title,
+                2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
+        // when
+        webTestClient
+                .put()
+                .uri(MOVIES_INFO_URL + "/{id}", movieInfoId)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
     }
 
     @Test
