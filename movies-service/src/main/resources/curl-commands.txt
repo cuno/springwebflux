@@ -19,7 +19,9 @@ curl -i \
 -X POST http://localhost:8081/v1/reviews
 
 curl -i \
--d '{"reviewId":2, "movieInfoId":1, "comment": "Excellent Movie", "rating":8.0}' \
+-d '{"reviewId":3, "movieInfoId":2, "comment": "Excellent Movie", "rating":8.0}' \
 -H "Content-Type: application/json" \
 -X POST http://localhost:8081/v1/reviews
 
+curl -i http://localhost:8082/v1/movies/1
+curl -i http://localhost:8082/v1/movies/2
