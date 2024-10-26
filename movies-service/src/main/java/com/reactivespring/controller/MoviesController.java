@@ -3,7 +3,6 @@ package com.reactivespring.controller;
 import com.reactivespring.ReviewsRestClient;
 import com.reactivespring.client.MoviesInfoRestClient;
 import com.reactivespring.domain.Movie;
-import com.reactivespring.exception.MoviesInfoClientException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
