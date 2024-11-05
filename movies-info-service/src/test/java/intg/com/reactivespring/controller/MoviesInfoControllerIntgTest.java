@@ -13,6 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.test.StepVerifier;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -94,6 +95,44 @@ class MoviesInfoControllerIntgTest {
                 .is2xxSuccessful()
                 .expectBodyList(MovieInfo.class)
                 .hasSize(3);
+    }
+
+    @Test
+    void getAllMovieInfos_stream() {
+        // given
+        var movieInfo = new MovieInfo(null, "Batman Begins again", 2005, List.of("Christian Bale", "Michael Cane"), LocalDate.parse("2005-06-15"));
+        webTestClient
+                .post()
+                .uri(MOVIES_INFO_URL)
+                .bodyValue(movieInfo)
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectBody(MovieInfo.class)
+                .consumeWith(movieInfoEntityExchangeResult ->
+                {
+                    var savedMovieInfo = movieInfoEntityExchangeResult.getResponseBody();
+                    // then
+                    assert savedMovieInfo != null;
+                    assert Objects.requireNonNull(savedMovieInfo).getMovieInfoId() != null;
+                });
+
+        // when
+        var moviesStreamFlux = webTestClient
+                .get()
+                .uri(MOVIES_INFO_URL + "/stream")
+                .exchange()
+                .expectStatus()
+                .is2xxSuccessful()
+                .returnResult(MovieInfo.class)
+                .getResponseBody();
+
+        StepVerifier.create(moviesStreamFlux)
+                .assertNext(m -> {
+                    assert m.getMovieInfoId() != null;
+                })
+                .thenCancel()
+                .verify();
     }
 
     @Test
@@ -197,7 +236,7 @@ class MoviesInfoControllerIntgTest {
     }
 
     @Test
-    void deleteMovieInfo() {
+    void deleteMovieInfoById() {
         // given
         var movieInfoId = "abc";
         // when

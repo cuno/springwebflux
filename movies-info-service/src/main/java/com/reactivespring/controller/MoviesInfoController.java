@@ -5,10 +5,21 @@ import com.reactivespring.repository.MovieInfoRepository;
 import com.reactivespring.service.MovieInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import javax.validation.Valid;
 import java.util.Optional;
@@ -18,6 +29,8 @@ import java.util.Optional;
 @Slf4j
 public class MoviesInfoController {
     private final MovieInfoRepository movieInfoRepository;
+
+    Sinks.Many<MovieInfo> moviesInfoSink = Sinks.many().replay().all();
 
     public MoviesInfoController(MovieInfoService movieInfoService, MovieInfoRepository movieInfoRepository) {
         this.movieInfoService = movieInfoService;
@@ -42,10 +55,16 @@ public class MoviesInfoController {
                 .log();
     }
 
+    @GetMapping(value = "/movieinfos/stream", produces = MediaType.APPLICATION_NDJSON_VALUE)
+    public Flux<MovieInfo> getMovieInfos() {
+        return moviesInfoSink.asFlux().log();
+    }
+
     @PostMapping("/movieinfos")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
-        return movieInfoService.addMovieInfo(movieInfo).log();
+        return movieInfoService.addMovieInfo(movieInfo)
+                .doOnNext(savedMovieInfo -> moviesInfoSink.tryEmitNext(savedMovieInfo));
     }
 
     @PutMapping("/movieinfos/{id}")
@@ -60,7 +79,7 @@ public class MoviesInfoController {
 
     @DeleteMapping("/movieinfos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> deleteMovieInfo(@PathVariable String id) {
-        return movieInfoService.deleteMovieInfo(id);
+    public Mono<Void> deleteMovieInfoById(@PathVariable String id) {
+        return movieInfoService.deleteMovieInfoById(id);
     }
 }
