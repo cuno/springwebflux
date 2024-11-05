@@ -1,49 +1,61 @@
 package com.reactivespring.controller;
 
 import com.reactivespring.domain.MovieInfo;
+import com.reactivespring.repository.MovieInfoRepository;
 import com.reactivespring.service.MovieInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/v1")
+@Slf4j
 public class MoviesInfoController {
-    public MoviesInfoController(MovieInfoService movieInfoService) {
+    private final MovieInfoRepository movieInfoRepository;
+
+    public MoviesInfoController(MovieInfoService movieInfoService, MovieInfoRepository movieInfoRepository) {
         this.movieInfoService = movieInfoService;
+        this.movieInfoRepository = movieInfoRepository;
     }
 
     private MovieInfoService movieInfoService;
 
     @GetMapping("/movieinfos")
-    public Flux<MovieInfo> getAllMovieInfos() {
-        return movieInfoService.getAllMovieInfos().log();
+    public Flux<MovieInfo> getMovieInfoByYear(@RequestParam(value = "year", required = false) Optional<Integer> year) {
+        log.info("year is {}", year);
+        return year
+                .map(movieInfoService::getMovieInfoByYear)
+                .orElseGet(movieInfoRepository::findAll);
     }
 
     @GetMapping("/movieinfos/{id}")
-    public Mono<MovieInfo> getMovieInfoById(@PathVariable String id) {
-        return movieInfoService.getMovieInfoById(id).log();
+    public Mono<ResponseEntity<MovieInfo>> getMovieInfoById(@PathVariable String id) {
+        return movieInfoService.getMovieInfoById(id)
+                .map(ResponseEntity.ok()::body)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .log();
     }
 
     @PostMapping("/movieinfos")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<MovieInfo> addMovieInfo(@RequestBody MovieInfo movieInfo) {
+    public Mono<MovieInfo> addMovieInfo(@RequestBody @Valid MovieInfo movieInfo) {
         return movieInfoService.addMovieInfo(movieInfo).log();
     }
 
     @PutMapping("/movieinfos/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<MovieInfo> updateMovieInfo(@RequestBody MovieInfo movieInfo, @PathVariable String id) {
-        return movieInfoService.updateMovieInfo(movieInfo, id).log();
+    public Mono<ResponseEntity<MovieInfo>> updateMovieInfo(@RequestBody MovieInfo updatedMovieInfo, @PathVariable String id) {
+        return movieInfoService
+                .updateMovieInfo(updatedMovieInfo, id)
+                .map(ResponseEntity.ok()::body)
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()))
+                .log();
     }
 
     @DeleteMapping("/movieinfos/{id}")
