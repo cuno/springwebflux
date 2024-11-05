@@ -92,7 +92,6 @@ class ReviewsIntgTest {
                 .consumeWith(reviewResponse -> {
                     var updatedReview = reviewResponse.getResponseBody();
                     assert updatedReview != null;
-                    System.out.println("updatedReview : " + updatedReview);
                     assertNotNull(savedReview.getReviewId());
                     assertEquals(8.0, updatedReview.getRating());
                     assertEquals("Not an Awesome Movie", updatedReview.getComment());
@@ -133,11 +132,9 @@ class ReviewsIntgTest {
         // when
         webTestClient
                 .get()
-                .uri(uriBuilder -> {
-                    return uriBuilder.path(REVIEWS_URL)
-                            .queryParam("movieInfoId", "1")
-                            .build();
-                })
+                .uri(uriBuilder -> uriBuilder.path(REVIEWS_URL)
+                        .queryParam("movieInfoId", "1")
+                        .build())
                 .exchange()
                 .expectStatus()
                 .is2xxSuccessful()
