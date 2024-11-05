@@ -1,14 +1,10 @@
 spring:
-  profiles:
-    active: local
----
-spring:
   config:
     activate:
       on-profile:
         - local
   data:
     mongodb:
-      host: localhost
+      host: prod
       port: 2701
-      database: local
+      database: prod
