@@ -1,12 +1,17 @@
 plugins {
-    id 'org.springframework.boot' version '2.5.3'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management' version '1.1.5'
 }
 
 group = 'com.reactivespring'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
 
 configurations {
     compileOnly {
@@ -19,15 +24,28 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    //validator
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    //lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    //test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
     testImplementation 'io.projectreactor:reactor-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Wiremock
+    testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner:3.1.10'
+    runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.114.Final:osx-x86_64'
 }
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }
 

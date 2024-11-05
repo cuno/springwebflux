@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,6 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @AutoConfigureWebTestClient
+//@AutoConfigureWireMock(port = 8084)
+@TestPropertySource(properties = {
+        "restClient.moviesInfoUrl = http://localhost:8084/v1/movieinfos",
+        "restClient.reviewsUrl = http://localhost:8084/v1/reviews"
+})
 class MoviesInfoControllerIntgTest {
 
     public static final String MOVIES_INFO_URL = "/v1/movieinfos";

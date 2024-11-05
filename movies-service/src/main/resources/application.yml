@@ -1,14 +1,8 @@
 spring:
   profiles:
     active: local
----
-spring:
-  config:
-    activate:
-      on-profile:
-        - local
-  data:
-    mongodb:
-      host: localhost
-      port: 2701
-      database: local
+restClient:
+  moviesInfoUrl: http://localhost:8080/v1/movieinfos
+  reviewsUrl: http://localhost:8081/v1/reviews
+server:
+  port: 8082
